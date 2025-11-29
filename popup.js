@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const checkbox = document.getElementById('enabledCheckbox');
   const status = document.getElementById('status');
+  const optionsLink = document.getElementById('optionsLink');
   
   // Load saved setting
   chrome.storage.sync.get(['enabled'], (result) => {
@@ -20,6 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.sync.set({ enabled: isEnabled }, () => {
       updateStatus(isEnabled);
     });
+  });
+  
+  // Open options page when link is clicked
+  optionsLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
   });
   
   function updateStatus(isEnabled) {

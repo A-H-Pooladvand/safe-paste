@@ -272,6 +272,78 @@ runner.test('Handle null input', () => {
   runner.assertEqual(output, null, 'Null should return null');
 });
 
+// Test custom keywords functionality
+runner.test('Set and apply custom keywords', () => {
+  const customSanitizer = new Sanitizer();
+  customSanitizer.setCustomKeywords([
+    { keyword: 'password', replacement: 'foo' }
+  ]);
+  
+  const input = 'My password is secret123';
+  const output = customSanitizer.sanitize(input);
+  runner.assertMatch(output, /My foo is secret123/, 'Custom keyword should be replaced');
+  runner.assertNotMatch(output, /password/, 'Original keyword should not exist');
+});
+
+runner.test('Custom keywords are case-insensitive', () => {
+  const customSanitizer = new Sanitizer();
+  customSanitizer.setCustomKeywords([
+    { keyword: 'SECRET', replacement: 'hidden' }
+  ]);
+  
+  const input = 'The Secret is kept secret and SECRET too';
+  const output = customSanitizer.sanitize(input);
+  runner.assertNotMatch(output, /[Ss][Ee][Cc][Rr][Ee][Tt]/, 'All case variations should be replaced');
+  runner.assertMatch(output, /hidden.*hidden.*hidden/, 'All occurrences should be replaced');
+});
+
+runner.test('Multiple custom keywords', () => {
+  const customSanitizer = new Sanitizer();
+  customSanitizer.setCustomKeywords([
+    { keyword: 'myname', replacement: 'John' },
+    { keyword: 'myemail', replacement: 'john@test.com' }
+  ]);
+  
+  const input = 'Name: myname, Email: myemail';
+  const output = customSanitizer.sanitize(input);
+  runner.assertMatch(output, /Name: John/, 'First custom keyword should be replaced');
+  // Note: The email will then be sanitized by the built-in email pattern
+  runner.assertNotMatch(output, /myemail/, 'Second custom keyword should be replaced');
+});
+
+runner.test('Custom keywords with special regex characters', () => {
+  const customSanitizer = new Sanitizer();
+  customSanitizer.setCustomKeywords([
+    { keyword: 'test.value', replacement: 'replaced' }
+  ]);
+  
+  const input = 'This is test.value here';
+  const output = customSanitizer.sanitize(input);
+  runner.assertMatch(output, /This is replaced here/, 'Special characters should be escaped');
+});
+
+runner.test('Empty custom keywords array does not affect sanitization', () => {
+  const customSanitizer = new Sanitizer();
+  customSanitizer.setCustomKeywords([]);
+  
+  const input = 'Normal text without changes';
+  const output = customSanitizer.sanitize(input);
+  runner.assertEqual(output, input, 'Empty keywords should not affect content');
+});
+
+runner.test('Custom keywords applied before built-in sanitization', () => {
+  const customSanitizer = new Sanitizer();
+  customSanitizer.setCustomKeywords([
+    { keyword: 'realpassword', replacement: 'dummypass' }
+  ]);
+  
+  const input = 'password: realpassword';
+  const output = customSanitizer.sanitize(input);
+  // Since this looks like YAML with a sensitive key, the built-in sanitization
+  // should also apply to the field name
+  runner.assertNotMatch(output, /realpassword/, 'Custom keyword should be replaced');
+});
+
 // Run all tests
 if (typeof module !== 'undefined' && require.main === module) {
   runner.run().then(success => {

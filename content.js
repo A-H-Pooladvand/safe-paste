@@ -9,14 +9,20 @@ const sanitizer = new Sanitizer();
 let isEnabled = true;
 
 // Load settings from storage
-chrome.storage.sync.get(['enabled'], (result) => {
+chrome.storage.sync.get(['enabled', 'customKeywords'], (result) => {
   isEnabled = result.enabled !== false; // Default to true
+  sanitizer.setCustomKeywords(result.customKeywords || []);
 });
 
 // Listen for storage changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && changes.enabled) {
-    isEnabled = changes.enabled.newValue;
+  if (namespace === 'sync') {
+    if (changes.enabled) {
+      isEnabled = changes.enabled.newValue;
+    }
+    if (changes.customKeywords) {
+      sanitizer.setCustomKeywords(changes.customKeywords.newValue || []);
+    }
   }
 });
 
