@@ -60,6 +60,21 @@ Click the Safe Paste icon in your Chrome toolbar to:
 - Toggle protection on/off
 - View list of protected data types
 - See supported formats
+- Access Custom Keywords Settings
+
+### Custom Keywords
+
+You can define your own keywords and replacement values:
+
+1. Click the Safe Paste icon in your Chrome toolbar
+2. Click "Custom Keywords Settings" or right-click the extension and select "Options"
+3. Add a keyword (e.g., "password") and its replacement (e.g., "foo")
+4. When you paste text containing the keyword, it will be automatically replaced
+
+Custom keywords are:
+- Case-insensitive (matches "Password", "PASSWORD", "password", etc.)
+- Applied before built-in sanitization patterns
+- Stored locally in your browser
 
 ## Examples
 
@@ -122,7 +137,7 @@ password: DUMMY_PASSWORD_123
 node test.js
 ```
 
-All 22 tests should pass.
+All 28 tests should pass.
 
 ### Project Structure
 
@@ -133,6 +148,8 @@ safe-paste/
 ├── sanitizer.js       # Core sanitization logic
 ├── popup.html         # Extension popup UI
 ├── popup.js           # Popup functionality
+├── options.html       # Custom keywords settings page
+├── options.js         # Options page functionality
 ├── test.js            # Test suite
 ├── icons/             # Extension icons
 │   ├── icon16.png

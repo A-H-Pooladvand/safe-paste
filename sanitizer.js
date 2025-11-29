@@ -4,6 +4,9 @@
 
 class Sanitizer {
     constructor() {
+        // Custom keywords for user-defined replacements
+        this.customKeywords = [];
+
         // Patterns for detecting sensitive information
         this.patterns = {
             // Email addresses
@@ -342,6 +345,36 @@ class Sanitizer {
     }
 
     /**
+     * Set custom keywords for replacement
+     * @param {Array} keywords - Array of {keyword, replacement} objects
+     */
+    setCustomKeywords(keywords) {
+        this.customKeywords = keywords || [];
+    }
+
+    /**
+     * Apply custom keyword replacements to content
+     * @param {string} content - The content to process
+     * @returns {string} - Content with custom keywords replaced
+     */
+    applyCustomKeywords(content) {
+        if (!this.customKeywords || this.customKeywords.length === 0) {
+            return content;
+        }
+
+        let result = content;
+        for (const item of this.customKeywords) {
+            if (item.keyword && item.replacement !== undefined) {
+                // Create a case-insensitive regex for replacement
+                const escapedKeyword = item.keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(escapedKeyword, 'gi');
+                result = result.replace(regex, item.replacement);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Main sanitization method - automatically detects format and sanitizes
      */
     sanitize(content) {
@@ -349,13 +382,16 @@ class Sanitizer {
             return content;
         }
 
-        // Detect format and apply appropriate sanitization
-        if (this.isJSON(content)) {
-            return this.sanitizeJSON(content);
-        } else if (this.isYAML(content)) {
-            return this.sanitizeYAML(content);
+        // First apply custom keyword replacements
+        let sanitized = this.applyCustomKeywords(content);
+
+        // Then detect format and apply appropriate sanitization
+        if (this.isJSON(sanitized)) {
+            return this.sanitizeJSON(sanitized);
+        } else if (this.isYAML(sanitized)) {
+            return this.sanitizeYAML(sanitized);
         } else {
-            return this.sanitizePlainText(content);
+            return this.sanitizePlainText(sanitized);
         }
     }
 }
